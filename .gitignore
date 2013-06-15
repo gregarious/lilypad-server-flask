@@ -1,0 +1,16 @@
+# general
+*[#~]
+.DS_Store
+Icon
+
+# compiled Python files
+*.py[cod]
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# SublimeText project files
+*.sublime-workspace
+*.sublime-project

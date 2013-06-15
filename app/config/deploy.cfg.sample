@@ -1,0 +1,6 @@
+# The following settings can be defined in a deployment-specific .cfg file.
+# This file must be referenced by the `LILYPAD_DEPLOY_SETTINGS` environment
+# variable.
+
+SECRET_KEY = ''     # random long string (required)
+DEBUG = False       # bool (defaults to `False`)
