@@ -4,6 +4,8 @@ from flask.ext.restful import reqparse, abort, Resource, fields, marshal_with, A
 from mongokit import Connection, Document
 from bson.objectid import ObjectId
 
+from datetime import datetime
+
 app = Flask(__name__)
 
 app.config.from_object('config.default')
@@ -15,21 +17,46 @@ connection = Connection(
 
 db = connection[app.config.get('MONGODB_DATABASE')]
 
-parser = reqparse.RequestParser()
-
 class Student(Document):
     __collection__ = 'students'
     structure = {
         'first_name': unicode,
-        'last_name': unicode
+        'last_name': unicode,
+
+        # note that embedded doc fields for doc arrays aren't
+        # actually mandated by MongoKit -- all it sees is the []
+        'goals': [{
+            'label': unicode,
+            'description': unicode,
+            'started_at': datetime,
+            'ended_at': datetime
+        }],
+
+        'activity_ratings': [{
+            'point_value': int,
+            'points_available': int,
+            'activity': {
+                'label': unicode,
+                'category': {
+                    'label': unicode
+                }
+            }
+        }],
+
+        'bonuses': [{
+            'point_value': int,
+            'reason': unicode
+        }]
     }
-    required_fields = ['first_name', 'last_name']
+
+    required_fields = ['first_name', 'last_name', 'school_id']
+
     use_dot_notation = True
 
     def __repr__(self):
-        return '<Student: %r %r>' % (self.first_name, self.last_name)
+        return '<Student: %s %s>' % (self.first_name, self.last_name)
 
-connection.register([Student])
+connection.register([School, Student])
 
 student_resource_fields = {
     '_id':  fields.String,
