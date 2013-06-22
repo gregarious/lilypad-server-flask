@@ -1,21 +1,11 @@
-from flask import Flask
-from flask.ext.restful import reqparse, abort, Resource, fields, marshal_with, Api
+from flask.ext.restful import Resource, fields, marshal_with, reqparse, abort
 
-from mongokit import Connection, Document
+from mongokit import Document
 from bson.objectid import ObjectId
 
 from datetime import datetime
 
-app = Flask(__name__)
-
-app.config.from_object('config.default')
-app.config.from_envvar('LILYPAD_DEPLOY_SETTINGS')
-
-connection = Connection(
-    app.config.get('MONGODB_HOST', 'localhost'),
-    app.config.get('MONDODB_PORT', 27017))
-
-db = connection[app.config.get('MONGODB_DATABASE')]
+from app import db, connection
 
 class Student(Document):
     __collection__ = 'students'
@@ -49,14 +39,14 @@ class Student(Document):
         }]
     }
 
-    required_fields = ['first_name', 'last_name', 'school_id']
+    required_fields = ['first_name', 'last_name']
 
     use_dot_notation = True
 
     def __repr__(self):
         return '<Student: %s %s>' % (self.first_name, self.last_name)
 
-connection.register([School, Student])
+connection.register([Student])
 
 student_resource_fields = {
     '_id':  fields.String,
@@ -102,15 +92,3 @@ class StudentCollection(Resource):
         student['last_name'] = args['last_name']
         student.save()
         return student, 201
-
-@app.route('/')
-def index():
-    return 'Welcome home!'
-
-api = Api(app)
-
-api.add_resource(StudentCollection, '/students/')
-api.add_resource(StudentResource, '/students/<string:_id>')
-
-if __name__ == '__main__':
-    app.run()
