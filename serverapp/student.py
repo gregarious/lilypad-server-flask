@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 
 from datetime import datetime, date
 
-from app import db, connection
+from serverapp import db, connection
 
 class Student(Document):
     __collection__ = 'students'
@@ -49,14 +49,7 @@ class Student(Document):
 
 connection.register([Student])
 
-student_resource_fields = {
-    '_id':  fields.String,
-    'first_name': fields.String,
-    'last_name': fields.String,
-}
-
 class StudentResource(Resource):
-    @marshal_with(student_resource_fields)
     def get(self, _id):
         student = db.Student.find_one({'_id': ObjectId(_id)})
         if student:
@@ -77,11 +70,9 @@ class StudentResource(Resource):
     #       abort(404)
 
 class StudentCollection(Resource):
-    @marshal_with(student_resource_fields)
     def get(self):
         return list(db.Student.find())
 
-    @marshal_with(student_resource_fields)
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('first_name', type=unicode)

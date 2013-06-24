@@ -1,5 +1,5 @@
 from flask.ext.restful import Api
-from app import app
+from serverapp import app
 
 from student import StudentCollection, StudentResource
 

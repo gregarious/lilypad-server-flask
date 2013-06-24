@@ -12,4 +12,4 @@ connection = Connection(
 
 db = connection[app.config.get('MONGODB_DATABASE')]
 
-import app.views
+import serverapp.views
