@@ -3,7 +3,7 @@ from flask.ext.restful import Resource, fields, marshal_with, reqparse, abort
 from mongokit import Document
 from bson.objectid import ObjectId
 
-from datetime import datetime
+from datetime import datetime, date
 
 from app import db, connection
 
@@ -12,6 +12,7 @@ class Student(Document):
     structure = {
         'first_name': unicode,
         'last_name': unicode,
+        'email': unicode,
 
         # note that embedded doc fields for doc arrays aren't
         # actually mandated by MongoKit -- all it sees is the []
@@ -25,17 +26,17 @@ class Student(Document):
         'activity_ratings': [{
             'point_value': int,
             'points_available': int,
-            'activity': {
-                'label': unicode,
-                'category': {
-                    'label': unicode
-                }
+            'label': unicode,
+            'recorded_at': datetime,
+            'category': {
+                'label': unicode
             }
         }],
 
         'bonuses': [{
+            'recorded_at': datetime,
             'point_value': int,
-            'reason': unicode
+            'label': unicode
         }]
     }
 
