@@ -4,6 +4,7 @@ from mongokit import Document
 from bson.objectid import ObjectId
 
 from datetime import datetime, date
+from copy import copy
 
 from serverapp import db, connection
 
@@ -23,7 +24,7 @@ class Student(Document):
             'ended_at': datetime
         }],
 
-        'activity_ratings': [{
+        'activities': [{
             'point_value': int,
             'points_available': int,
             'label': unicode,
@@ -49,7 +50,75 @@ class Student(Document):
 
 connection.register([Student])
 
+
+class GoalCollection(Resource):
+    resource_fields = {
+        'label': fields.String,
+        'description': fields.String,
+        'started_at': fields.DateTime,
+        'ended_at': fields.DateTime
+    }
+
+    @marshal_with(resource_fields)
+    def get(self, student_id):
+        student = db.Student.find_one({'_id': ObjectId(student_id)})
+        if student:
+            return student.goals
+        else:
+            abort(404)
+
+
+class ActivityCollection(Resource):
+    resource_fields = {
+        'point_value': fields.Integer,
+        'points_available': fields.Integer,
+        'label': fields.String,
+        'recorded_at': fields.DateTime,
+        'category': fields.Nested({
+            'label': fields.String
+        })
+    }
+
+    @marshal_with(resource_fields)
+    def get(self, student_id):
+        student = db.Student.find_one({'_id': ObjectId(student_id)})
+        if student:
+            return student.activities
+        else:
+            abort(404)
+
+
+class BonusCollection(Resource):
+    resource_fields = {
+        'point_value': fields.Integer,
+        'label': fields.String,
+        'recorded_at': fields.DateTime,
+    }
+
+    @marshal_with(resource_fields)
+    def get(self, student_id):
+        student = db.Student.find_one({'_id': ObjectId(student_id)})
+        if student:
+            return student.bonuses
+        else:
+            abort(404)
+
+
 class StudentResource(Resource):
+    resource_fields = {
+        '_id': fields.String,
+        'first_name': fields.String,
+        'last_name': fields.String,
+        'email': fields.String,
+        'goals': fields.List(fields.Nested(
+            GoalCollection.resource_fields)),
+        'activities': fields.List(fields.Nested(
+            ActivityCollection.resource_fields)),
+        'bonus': fields.List(fields.Nested(
+            BonusCollection.resource_fields))
+    }
+
+    @marshal_with(resource_fields)
     def get(self, _id):
         student = db.Student.find_one({'_id': ObjectId(_id)})
         if student:
@@ -70,9 +139,13 @@ class StudentResource(Resource):
     #       abort(404)
 
 class StudentCollection(Resource):
+    resource_fields = StudentResource.resource_fields
+
+    @marshal_with(resource_fields)
     def get(self):
         return list(db.Student.find())
 
+    @marshal_with(resource_fields)
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('first_name', type=unicode)
